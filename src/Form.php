@@ -271,13 +271,24 @@ class Form
 
         $fields = '';
         foreach ($this->definition->fields as $field) {
+            $has_sep = false;
+
             if (array_is_list($field)) {
-                // agrupando campos na mesma linha: igual para bs4 e bs5
+                
+                // Verifica se há a necessidade de um separador entre esta linha e a anteriror
                 if($field[0]['type'] == 'separator')
                 {
-                    $fields .= '<div class="row my-2 border-bottom"';
+                    $fields .= 
+                    '<div class="d-flex align-items-center mt-5 mb-2">
+                        <h6 class="text-secondary mr-2 ">
+                            <strong>'. ($field[0]['label'] ?? '') .'</strong>
+                        </h6>
+                        <div class="flex-grow-1 border mb-2"></div>
+                    </div>';
                 }
-                else{$fields .= '<div class="row">';}
+
+                // agrupando campos na mesma linha: igual para bs4 e bs5
+                $fields .= '<div class="row">';
                 
                 foreach ($field as $f) {
                     if($f['type'] != 'separator'){
@@ -292,6 +303,7 @@ class Form
                     }
                 }
                 $fields .= '</div>';
+                
             } else {
                 // a linha possui um campo somente
                 if (isset($field['width']) && is_numeric($field['width'])) {
