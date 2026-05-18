@@ -48,21 +48,21 @@ class FormSubmission extends Model
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()
-        ->logOnly(['data'])
-        ->setDescriptionForEvent(function(string $eventName) {
-            $eventos = [
-                'created' => 'criada',
-                'updated' => 'atualizada',
-                'deleted' => 'excluída',
-            ];
-            $eventoPt = $eventos[$eventName] ?? $eventName;
-            return "Submissão {$eventoPt}";
-        });
+            ->logOnly(['data'])
+            ->setDescriptionForEvent(function (string $eventName) {
+                $eventos = [
+                    'created' => 'criada',
+                    'updated' => 'atualizada',
+                    'deleted' => 'excluída',
+                ];
+                $eventoPt = $eventos[$eventName] ?? $eventName;
+                return "Submissão {$eventoPt}";
+            });
     }
 
     /**
      * Renderiza o HTML de visualização do formulário enviado
-     * 
+     *
      * @param bool $longName Se true, exibe nome completo de campos como disciplina-usp (código + nome)
      * @param bool $isAdmin Se true, exibe e destaca campos administrativos (sem label)
      * @return string HTML renderizado com os dados do formulário
@@ -134,7 +134,7 @@ class FormSubmission extends Model
                 . '</div>';
         }
 
-      
+
         return $fields;
     }
 
@@ -168,33 +168,30 @@ class FormSubmission extends Model
 
     /**
      * Renderiza um campo individual no modo visualização
-     * 
+     *
+     * Se for algum tipo em $types ele renderiza usando uma view especializada, caso contrário usa uma view genérica
+     *
      * @param array $field Configuração do campo
      * @param bool $longName Se true, exibe informações completas do campo
      * @return string HTML renderizado do campo
      */
     protected function renderField($field, $longName = false): string
     {
-        // tipos de entradas do form em modo visualização
-        $types = ['checkbox', 'time', 'file', 'pessoa-usp', 'disciplina-usp', 'patrimonio-usp', 'local-usp'];
+        $customViews = [
+            'checkbox',
+            'file',
+            'pessoa-usp',
+            'disciplina-usp',
+            'patrimonio-usp',
+            'local-usp',
+        ];
 
-        $fieldName = $field['name'] ?? 'field';
-        $field['id'] = 'uspdev-forms-' . $fieldName;
+        $field['id'] = 'uspdev-forms-' . ($field['name'] ?? 'field');
 
-        if (in_array($field['type'], $types)) {
-            $viewName = $field['type'] . '-view';
-            $html = view('uspdev-forms::partials.' . $viewName, [
-                'field' => $field,
-                'submission' => $this,
-                'longName' => $longName,
-            ])->render();
-        } else {
-            $html = view('uspdev-forms::partials.default-view', [
-                'field' => $field,
-                'submission' => $this,
-            ])->render();
-        }
-        return $html;
+        $view = in_array($field['type'], $customViews, true)
+            ? "uspdev-forms::partials.{$field['type']}-view"
+            : 'uspdev-forms::partials.default-view';
+
+        return view($view, ['field' => $field, 'submission' => $this, 'longName' => $longName,])->render();
     }
-
 }
