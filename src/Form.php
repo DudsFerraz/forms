@@ -171,6 +171,7 @@ class Form
             return [
                 'status' => 'error',
                 'errors' => $validator->errors(),
+                'data' => $request->only(array_keys($rules)),
             ];
         }
 
@@ -214,8 +215,9 @@ class Form
      */
     protected static function getFieldValidationRule($field)
     {
-        // required or nullable
         $rule = !empty($field['required']) ? 'required' : 'nullable';
+        $rule = !empty($field['validation_rule']) ? $rule . '|' . $field['validation_rule'] : $rule;
+        $rule = self::normalizeRule($rule);
 
         $options = $field['options'] ?? [];
         $options = is_array($options) ? $options : [];
@@ -241,6 +243,30 @@ class Form
         }
 
         return $rule;
+    }
+
+    /**
+     * Normaliza uma string de regras de validação do Laravel.
+     *
+     * Remove regras duplicadas e elimina "nullable" quando
+     * a regra "required" estiver presente.
+     *
+     * Exemplos:
+     * - required|nullable|email => required|email
+     * - nullable|email|email => nullable|email
+     *
+     * @param string $rule Regras separadas por pipe.
+     * @return string Regras normalizadas.
+     */
+    protected static function normalizeRule(string $rule): string
+    {
+        $parts = collect(explode('|', $rule))->filter()->unique();
+
+        if ($parts->contains('required')) {
+            $parts = $parts->reject(fn($item) => $item === 'nullable');
+        }
+
+        return $parts->implode('|');
     }
 
     protected static function addFieldGenParams($field)
@@ -511,9 +537,9 @@ class Form
 
     /**
      * Retorna informações detalhadas de uma activity de submissão, incluindo os dados do formulário no momento da atividade.
-      *
-      * @param int $id ID da atividade a ser detalhada
-      * @return \Spatie\Activitylog\Models\Activity
+     *
+     * @param int $id ID da atividade a ser detalhada
+     * @return \Spatie\Activitylog\Models\Activity
      */
     public function detailActivity($id)
     {

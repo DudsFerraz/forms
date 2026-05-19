@@ -75,6 +75,10 @@ php artisan forms:sync --path=storage/app/formsJson
 
     OBS.: **Os campos USP dependem do replicado**.
 
+6. Em todos os campos pode ser definido a diretiva **validation_rule** com a validação dos campos Laravel conforme a documentação.
+
+   OBS.: **Campos são validados pelo tipo definido em type.** Por exemplo, campos do tipo "number" serão validados pela validação do Laravel "numeric". 
+
 * **texto de 1 linha**
 
 ```json
@@ -83,7 +87,8 @@ php artisan forms:sync --path=storage/app/formsJson
       "name": "name",
       "type": "text",
       "label": "Nome (text)",
-      "required": true
+      "required": true,
+      "validation_rule": "max:150"
     },
 ]
 ```
@@ -101,7 +106,8 @@ php artisan forms:sync --path=storage/app/formsJson
       "name": "email",
       "type": "email",
       "label": "Email (email)",
-      "required": false
+      "required": false,
+      "validation_rule":"max:150"
     }
   ],
 ```
@@ -120,7 +126,8 @@ php artisan forms:sync --path=storage/app/formsJson
       "3",
       "4",
       "5"
-    ]
+    ],
+    "validation_rule":"exists:ranking,id"
   },
 ]
 ```
@@ -242,6 +249,41 @@ public function store(Request $request)
   
   // ....
 }
+```
+**OBS.: caso exista no $request a chave id ($request->id) o formulário anteriormente submetido com este id será atualizado.**
+**Caso existam erros de validação, o método retorna um array com as seguintes informações: [$validated['status'=>'error','errors'=>[dados do erro],'data'=>[dados preenchidos no formulário]],String HTMLFormulário preenchido]**
+
+Exemplo de tratamento de erros:
+```php
+       $message = [
+            'max'=>'O campo :attribute pode ter no máximo :max caracteres',
+            'required_if'=>'O campo :attribute precisa ser informado.',
+            'data_saida.after_or_equal'=>'O campo data saída deve ter um valor posterior à data de hoje',
+            'data_retorno.after_or_equal'=>'O campo data retorno deve ter um valor posterior à data informada na data de saída',
+            'date_format'=>'O formato de data deve ser HH:MM'
+        ];
+        
+        $form = (new Form(['editable'=>true]))->handleSubmission($request);
+        if (is_array($form))
+        {
+            $erros = '<li>';
+            foreach($form['validated']['errors']->getMessages() as $field=>$value) // Instância de MessageBag (Laravel)
+            {
+                foreach($value as $e)
+                {
+                    $nomE = explode('.',$e);
+                    if (!empty($message[$field.".".$nomE[1]])) $erros.="<ul>".$message[$field.".".$nomE[1]]."</ul>"; 
+                    else $erros.="<ul>".str_replace(":attribute",$field,$message[$nomE[1]])."</ul>";
+
+                }
+                
+            }
+            $erros.='</li>';
+
+            session(['alert_danger'=>$erros]); //precisa mostrar os erros na view no caso dessa varíavel existir
+           
+            return view('view-aplicacao.create',['html'=>$form['formHtml']]); //formulário preenchido
+        }
 ```
 
 4. **Listar submissões**
