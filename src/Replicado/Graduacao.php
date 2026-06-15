@@ -17,7 +17,7 @@ class Graduacao extends GraduacaoReplicado
      * @param int|null $limit
      * @return array
      */
-    public static function procurarDisciplinas($coddis, $limit = null)
+    public static function procurarDisciplinas($coddis, $limit = 50)
     {
         $coddis = Str::upper(trim((string) $coddis));
 
@@ -25,11 +25,8 @@ class Graduacao extends GraduacaoReplicado
             return [];
         }
 
-        $queryLimit = '';
-        if ($limit !== null) {
-            $limit = max(1, min((int) $limit, 50));
-            $queryLimit = "OFFSET 0 ROWS FETCH NEXT {$limit} ROWS ONLY";
-        }
+        $limit = $limit === null ? 50 : max(1, min((int) $limit, 50));
+        $queryLimit = "OFFSET 0 ROWS FETCH NEXT {$limit} ROWS ONLY";
 
         $query = "SELECT D1.*
                     FROM DISCIPLINAGR D1
