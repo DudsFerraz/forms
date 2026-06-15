@@ -14,10 +14,10 @@ class Graduacao extends GraduacaoReplicado
      * Derivado de Uspdev\Replicado\Graduacao::obterDisciplinas.
      *
      * @param string $coddis
-     * @param int|null $limit
+     * @param int $limit
      * @return array
      */
-    public static function procurarDisciplinas($coddis, $limit = 50)
+    public static function procurarDisciplinas($coddis, int $limit = 50)
     {
         $coddis = Str::upper(trim((string) $coddis));
 
@@ -25,7 +25,7 @@ class Graduacao extends GraduacaoReplicado
             return [];
         }
 
-        $limit = $limit === null ? 50 : max(1, min((int) $limit, 50));
+        $limit = max(1, min($limit, 50));
         $queryLimit = "OFFSET 0 ROWS FETCH NEXT {$limit} ROWS ONLY";
 
         $query = "SELECT D1.*
