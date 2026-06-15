@@ -25,6 +25,6 @@
         selector: '#{{ $field['id'] }}',
         url: '{{ route('form.find.disciplina') }}',
         placeholder: 'Selecione uma disciplina...',
-        minimumInputLength: 3,
+        minimumInputLength: 1,
     });
 </script>

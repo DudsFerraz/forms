@@ -2,24 +2,34 @@
 
 namespace Uspdev\Forms\Replicado;
 
+use Illuminate\Support\Str;
 use Uspdev\Replicado\DB;
 use Uspdev\Replicado\Graduacao as GraduacaoReplicado;
 
 class Graduacao extends GraduacaoReplicado
 {
-    /*
-    * Método para procurar disciplinas ativas de graduação por coddis
-    *
-    * Derivado do método Uspdev\Replicado\Graduacao::obterDisciplinas
-    * Adicionado verificação de disciplina ativa e limite de disciplinas
-    *
-    * @param String $coddis
-    * @param int $limit
-    * @return array()
-    */
+    /**
+     * Procura disciplinas ativas de graduação pelo início do código.
+     *
+     * Derivado de Uspdev\Replicado\Graduacao::obterDisciplinas.
+     *
+     * @param string $coddis
+     * @param int|null $limit
+     * @return array
+     */
     public static function procurarDisciplinas($coddis, $limit = null)
     {
-        $queryLimit = ($limit) ? "OFFSET 0 ROWS FETCH NEXT $limit ROWS ONLY" : '';
+        $coddis = Str::upper(trim((string) $coddis));
+
+        if (! preg_match('/^[A-Z0-9]+$/', $coddis)) {
+            return [];
+        }
+
+        $queryLimit = '';
+        if ($limit !== null) {
+            $limit = max(1, min((int) $limit, 50));
+            $queryLimit = "OFFSET 0 ROWS FETCH NEXT {$limit} ROWS ONLY";
+        }
 
         $query = "SELECT D1.*
                     FROM DISCIPLINAGR D1
@@ -35,8 +45,8 @@ class Graduacao extends GraduacaoReplicado
                     $queryLimit
         ";
 
-        $params['coddis'] = $coddis . '%';
+        $disciplinas = DB::fetchAll($query, ['coddis' => $coddis . '%']);
 
-        return DB::fetchAll($query, $params);
+        return is_array($disciplinas) ? $disciplinas : [];
     }
 }
