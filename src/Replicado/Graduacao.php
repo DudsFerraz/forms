@@ -26,9 +26,8 @@ class Graduacao extends GraduacaoReplicado
         }
 
         $limit = max(1, min($limit, 50));
-        $queryLimit = "OFFSET 0 ROWS FETCH NEXT {$limit} ROWS ONLY";
 
-        $query = "SELECT D1.*
+        $query = "SELECT TOP {$limit} D1.*
                     FROM DISCIPLINAGR D1
                     INNER JOIN (
                         SELECT coddis, MAX(verdis) AS verdis
@@ -39,7 +38,6 @@ class Graduacao extends GraduacaoReplicado
                     AND D1.dtadtvdis IS NULL
                     AND D1.dtaatvdis IS NOT NULL
                     ORDER BY D1.coddis ASC
-                    $queryLimit
         ";
 
         $disciplinas = DB::fetchAll($query, ['coddis' => $coddis . '%']);
