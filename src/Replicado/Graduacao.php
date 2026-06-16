@@ -40,8 +40,6 @@ class Graduacao extends GraduacaoReplicado
                     ORDER BY D1.coddis ASC
         ";
 
-        $disciplinas = DB::fetchAll($query, ['coddis' => $coddis . '%']);
-
-        return is_array($disciplinas) ? $disciplinas : [];
+        return DB::fetchAll($query, ['coddis' => $coddis . '%']);
     }
 }
