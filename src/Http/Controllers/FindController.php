@@ -3,8 +3,8 @@ namespace Uspdev\Forms\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
-use Uspdev\Forms\Replicado\Graduacao;
 use Uspdev\Forms\Replicado\Bempatrimoniado;
+use Uspdev\Forms\Replicado\Graduacao;
 use Uspdev\Replicado\Estrutura;
 use Uspdev\Replicado\Pessoa;
 
@@ -17,24 +17,35 @@ class FindController extends Controller
     {
         $this->authorize(config('uspdev-forms.findGate'));
 
-        if (! $request->term) {
-            return response([]);
+        $term = Str::upper(trim((string) $request->query('term', '')));
+
+        if (! preg_match('/^[A-Z0-9]+$/', $term)) {
+            return response()->json(['results' => []]);
         }
 
-        $results = [];
+        if (! hasReplicado()) {
+            return response()->json(['results' => []]);
+        }
 
-        if (hasReplicado()) {
-            $coddis = Str::upper($request->term);
+        try {
+            $results = collect(Graduacao::procurarDisciplinas($term, 50))
+                ->filter(fn ($disciplina) => is_array($disciplina)
+                    && isset($disciplina['coddis'], $disciplina['nomdis']))
+                ->map(fn (array $disciplina) => [
+                    'id' => trim((string) $disciplina['coddis']),
+                    'text' => trim((string) $disciplina['coddis'])
+                        . ' - '
+                        . trim((string) $disciplina['nomdis']),
+                ])
+                ->values()
+                ->all();
+        } catch (\Throwable $exception) {
+            logger()->error('Falha ao pesquisar disciplinas USP no Replicado.', [
+                'exception' => $exception,
+                'term' => $term,
+            ]);
 
-            $disciplinas = Graduacao::procurarDisciplinas($coddis, 50);
-
-            foreach ($disciplinas as $disciplina) {
-                $results[] = [
-                    'text' => $disciplina['coddis'] . ' - ' . $disciplina['nomdis'],
-                    'id'   => $disciplina['coddis'],
-                ];
-            }
-            $results = array_slice($results, 0, 50);
+            return response()->json(['results' => []], 503);
         }
 
         return response()->json(['results' => $results]);
