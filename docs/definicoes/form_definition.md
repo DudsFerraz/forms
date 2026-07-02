@@ -9,7 +9,7 @@ Uma `form_definition` descreve um formulário e sua estrutura de campos. Cada re
 | id | PK |
 | name | string; identifica o formulário lógico |
 | version | inteiro positivo; identifica uma versão concreta |
-| is_active | boolean, default `true`; indica a versão ativa do `name` |
+| status | `draft`, `active` ou `disabled`; indica o estado da versão |
 | group | string |
 | description | string nullable |
 | fields | JSON com a estrutura dos campos |
@@ -31,7 +31,7 @@ Uma `form_definition` descreve um formulário e sua estrutura de campos. Cada re
 {
   "name": "parecer_final",
   "version": 2,
-  "is_active": true,
+  "status": "active",
   "group": "workflow",
   "description": "Parecer final",
   "fields": [
@@ -69,7 +69,7 @@ Uma `form_definition` descreve um formulário e sua estrutura de campos. Cada re
 | ----- | --------------- |
 | name | obrigatório, string |
 | version | obrigatório, inteiro positivo |
-| is_active | boolean opcional, default `true` |
+| status | obrigatório; `draft`, `active` ou `disabled` |
 | group | obrigatório, string |
 | description | string nullable |
 | fields | array obrigatório |
@@ -148,4 +148,3 @@ Um item de `fields` pode ser um campo único ou uma lista de campos. Listas são
 ## Campos USP
 
 Os tipos `pessoa-usp`, `disciplina-usp`, `patrimonio-usp` e `local-usp` dependem do pacote `uspdev/replicado` e das rotas de busca disponibilizadas pela biblioteca.
-

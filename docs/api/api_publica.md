@@ -6,6 +6,12 @@ Use `Uspdev\Forms\Facades\Forms` como porta oficial da biblioteca.
 use Uspdev\Forms\Facades\Forms;
 ```
 
+Esta página resume a API pública. Para a decisão de quando usar facade ou métodos diretos nos models, consulte:
+
+* [API via facade Forms](facade_forms.md)
+* [Métodos diretos nos models](metodos_diretos.md)
+* [Equivalência entre facade e models](equivalencia_facade_model.md)
+
 ## Regra de versão
 
 Métodos que recebem `name` e `version` devem aceitar a versão como parâmetro opcional. Quando `version` for omitida, a biblioteca deve usar a versão ativa daquele `name`.
@@ -182,7 +188,7 @@ O método deve:
 * ler apenas arquivos JSON do diretório informado;
 * validar cada definição com `FormDefinitionSchemaValidator`;
 * criar ou atualizar registros usando `name + version`;
-* se um JSON vier com `is_active = true`, desativar as outras versões do mesmo `name`;
+* se um JSON vier com `status = active`, desativar as outras versões do mesmo `name`;
 * retornar um resumo com arquivos processados, criados, atualizados, ignorados e erros.
 
 Esse método é útil para manter definições versionadas em arquivos do projeto e publicá-las no banco durante deploy, setup local ou atualização controlada de ambientes.

@@ -27,7 +27,7 @@ Depois:
 {
   "name": "parecer_final",
   "version": 1,
-  "is_active": true,
+  "status": "active",
   "group": "workflow",
   "description": "Parecer final",
   "fields": []
@@ -164,4 +164,3 @@ Ao processar a transição, o workflow deve preservar o `form_submission_id` ret
 * Use `form_version` em workflows quando a transição precisar ser estável e reprodutível.
 * Omitir `version` significa usar a versão ativa do formulário.
 * Defina apenas uma versão ativa por `name`.
-

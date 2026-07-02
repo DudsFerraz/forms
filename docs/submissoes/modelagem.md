@@ -38,7 +38,7 @@ erDiagram
         bigint id
         string name
         int version
-        bool is_active
+        string status
         string group
         string description
         json fields
@@ -51,4 +51,3 @@ erDiagram
         json data
     }
 ```
-

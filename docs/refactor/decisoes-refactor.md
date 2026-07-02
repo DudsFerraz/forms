@@ -10,9 +10,78 @@ A facade não deve ser entendida como a classe que concentra toda a implementaç
 
 ## Divisão entre definição e submissão
 
-`FormDefinition` representa a estrutura e o versionamento do formulário. Ela responde por `name`, `version`, `is_active`, `group`, `description` e `fields`.
+`FormDefinition` representa a estrutura e o versionamento do formulário. Ela responde por `name`, `version`, `status`, `group`, `description` e `fields`.
 
 `FormSubmission` representa os dados submetidos. Ela guarda `form_definition_id`, `user_id`, `key` e `data`, além de auditoria e soft delete. A versão usada por uma submissão vem sempre da relação com `formDefinition`, não de uma coluna própria de versão.
+
+## Facade e métodos diretos nos models
+
+A V2 pode oferecer duas entradas públicas para o mesmo comportamento quando houver justificativa real: uma via facade e outra direta no model.
+
+A facade oferece facilidade. Ela é indicada para fluxos de alto nível, resolução de definição, resolução de versão ativa, consultas, submissões e sincronização.
+
+Métodos diretos nos models oferecem flexibilidade. Eles são indicados quando a aplicação já tem uma entidade carregada e a operação pertence naturalmente a essa entidade.
+
+Os métodos públicos devem ser classificados em três grupos.
+
+### Facade apenas
+
+Métodos facade apenas são aqueles em que não há entidade já resolvida que represente naturalmente a operação, ou em que a operação existe para localizar/orquestrar outros objetos.
+
+Exemplos:
+
+```php
+Forms::definition('parecer_final');
+Forms::definition('parecer_final', 2);
+Forms::activeDefinition('parecer_final');
+Forms::definitions('workflow');
+Forms::submission($id);
+Forms::submissions('parecer_final', key: 'workflow-123');
+Forms::filterSubmissions(...);
+Forms::syncFromDirectory($path);
+```
+
+### Facade e model
+
+Métodos podem existir nas duas formas quando ambas forem úteis para consumidores diferentes.
+
+Exemplos:
+
+```php
+Forms::render('parecer_final', 2, $options);
+$definition->render($options);
+
+Forms::validate($request, 'parecer_final', 2);
+$definition->validateData($request);
+
+Forms::submit($request);
+$definition->submit($request);
+
+Forms::update($request, $submission);
+$submission->updateFromRequest($request);
+
+Forms::downloadFile($submission, 'arquivo');
+$submission->download('arquivo');
+
+Forms::deleteSubmission($submission, auth()->user());
+$submission->deleteWithActivity(auth()->user());
+```
+
+Quando duas formas públicas existirem para o mesmo comportamento, elas devem usar a mesma implementação interna, retornar o mesmo tipo, lançar as mesmas exceções e ter testes de equivalência.
+
+### Model apenas
+
+Métodos model apenas são aqueles que representam comportamento próprio de uma entidade já carregada e não precisam de uma entrada global pela facade.
+
+Exemplos:
+
+```php
+$submission->showHtml();
+$submission->formDefinition;
+$definition->formSubmissions();
+```
+
+Se não houver justificativa plausível para disponibilizar um comportamento nas duas formas, ele não deve ser duplicado publicamente.
 
 ## Form como implementação interna
 

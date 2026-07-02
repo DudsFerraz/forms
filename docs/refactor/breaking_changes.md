@@ -68,7 +68,7 @@ Arquivos JSON de definição devem informar `version`.
 {
   "name": "parecer_final",
   "version": 2,
-  "is_active": true,
+  "status": "active",
   "group": "workflow",
   "description": "Parecer final",
   "fields": []
@@ -78,4 +78,3 @@ Arquivos JSON de definição devem informar `version`.
 ## Erros de submissão
 
 A API pública deve retornar `FormSubmission` em caso de sucesso ou lançar exceções em falha. Fluxos que tratavam retorno string/array de `Form::handleSubmission` devem ser migrados para `try/catch`.
-

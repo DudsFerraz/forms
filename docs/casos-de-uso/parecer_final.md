@@ -26,7 +26,7 @@ Crie um arquivo em `storage/app/formsJson/parecer_final.v1.json`.
 {
   "name": "parecer_final",
   "version": 1,
-  "is_active": true,
+  "status": "active",
   "group": "workflow",
   "description": "Formulário de parecer final",
   "fields": [
