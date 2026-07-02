@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Auth;
 use Spatie\Activitylog\Models\Activity;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
+use Uspdev\Forms\Enums\FormDefinitionStatus;
 
 class Form
 {
@@ -32,6 +33,9 @@ class Form
     /** Nome do formulario no BD*/
     public $name;
 
+    /** Versao da definicao, quando informada */
+    public $version;
+
     /** se true, pode ser editado. nesse caso precisa passar o id da submissão */
     public $editable; // bool
 
@@ -50,6 +54,7 @@ class Form
 
         // nome do form definition
         $this->name = isset($config['name']) ? $config['name'] : null;
+        $this->version = isset($config['version']) ? $config['version'] : null;
 
         $this->action = isset($config['action']) ? $config['action'] : null;
         $this->editable = isset($config['editable']) ? $config['editable'] : false;
@@ -76,7 +81,7 @@ class Form
         }
 
         // Retrieve the form definition by id
-        if (!($definition = $this->getDefinition($request->form_definition))) {
+        if (!($definition = $this->getDefinitionFromRequest($request))) {
             return 'Erro ao buscar formDefinition';
         }
 
@@ -157,7 +162,7 @@ class Form
      */
     public function validate($request)
     {
-        if (!($definition = $this->getDefinition($request->form_definition))) {
+        if (!($definition = $this->getDefinitionFromRequest($request))) {
             return [
                 'status' => 'error',
                 'message' => 'Erro ao buscar o formDefinition',
@@ -184,7 +189,7 @@ class Form
     /**
      * Retorna as regras de validação para os campos do form
      */
-    protected static function getValidationRules(FormDefinition $definition)
+    public static function getValidationRules(FormDefinition $definition): array
     {
         $rules = [];
 
@@ -234,7 +239,7 @@ class Form
             'date' => 'date',
             'url' => 'url',
             'file' => 'file',
-            'select.*' =>  ['in:' . implode(',', $values)]
+            'select' => 'in:' . implode(',', $values),
         ];
 
         if (isset($rulesMap[$field['type']])) {
@@ -291,10 +296,19 @@ class Form
      */
     public function generateHtml(?string $formName = null, $formSubmission = null)
     {
-        // pega pela definição
-        if (!($this->definition = $this->getDefinition($formName ?? $this->name)) && !($this->definition = $formSubmission->formDefinition)) {
+        $this->definition = $formSubmission?->formDefinition
+            ?? $this->getDefinition($formName ?? $this->name);
+
+        if (!$this->definition) {
             return null;
         }
+
+        return $this->generateHtmlFromDefinition($this->definition, $formSubmission);
+    }
+
+    public function generateHtmlFromDefinition(FormDefinition $definition, $formSubmission = null)
+    {
+        $this->definition = $definition;
 
         $fields = '';
         foreach ($this->definition->fields as $field) {
@@ -523,7 +537,29 @@ class Form
      */
     public function getDefinition($formName = null)
     {
-        return FormDefinition::where('name', $formName ?? $this->name)->first();
+        $name = $formName ?? $this->name;
+
+        if ($this->version) {
+            return FormDefinition::where('name', $name)
+                ->where('version', $this->version)
+                ->first();
+        }
+
+        return FormDefinition::where('name', $name)
+            ->where('status', FormDefinitionStatus::Active->value)
+            ->orderByDesc('version')
+            ->first();
+    }
+
+    protected function getDefinitionFromRequest(Request $request): ?FormDefinition
+    {
+        if ($request->filled('form_definition_id')) {
+            return FormDefinition::find((int) $request->input('form_definition_id'));
+        }
+
+        $this->version = $request->filled('version') ? (int) $request->input('version') : $this->version;
+
+        return $this->getDefinition($request->form_definition);
     }
 
     /**

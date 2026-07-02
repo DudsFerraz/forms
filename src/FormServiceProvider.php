@@ -6,6 +6,7 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Blade;
 use \Spatie\Activitylog\Models\Activity;
 use Uspdev\Forms\Providers\EventServiceProvider;
+use Uspdev\Forms\FormsService;
 
 class FormServiceProvider extends ServiceProvider
 {
@@ -70,5 +71,11 @@ class FormServiceProvider extends ServiceProvider
             __DIR__ . '/../config/uspdev-forms.php',
             'uspdev-forms'
         );
+
+        $this->app->singleton(FormsService::class, function () {
+            return new FormsService();
+        });
+
+        $this->app->alias(FormsService::class, 'forms');
     }
 }
