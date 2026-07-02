@@ -5,6 +5,7 @@ namespace Uspdev\Forms\Console\Commands;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+use Uspdev\Forms\Enums\FormDefinitionStatus;
 
 class FormDemo extends Command
 {
@@ -44,8 +45,9 @@ class FormDemo extends Command
         $name = 'Demo Form';
         $group = 'demo';
         $description = 'Esse é um formulário de demonstração criado com artisan form:demo.';
+        $version = 1;
 
-        $existing = DB::table('form_definitions')->where('name', $name)->first();
+        $existing = DB::table('form_definitions')->where('name', $name)->where('version', $version)->first();
         if ($existing) {
             if (!$this->confirm('O formulário "Demo Form" já existe. Deseja substituir?')) {
                 $this->info('Operação cancelada.');
@@ -56,6 +58,8 @@ class FormDemo extends Command
                 ->where('id', $existing->id)
                 ->update([
                     'group' => $group,
+                    'version' => $version,
+                    'status' => FormDefinitionStatus::Active->value,
                     'description' => $description,
                     'fields' => json_encode($form),
                     'updated_at' => Carbon::now(),
@@ -65,6 +69,8 @@ class FormDemo extends Command
         } else {
             DB::table('form_definitions')->insert([
                 'name' => $name,
+                'version' => $version,
+                'status' => FormDefinitionStatus::Active->value,
                 'group' => $group,
                 'description' => $description,
                 'fields' => json_encode($form),

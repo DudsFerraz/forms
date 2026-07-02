@@ -7,7 +7,9 @@ use Exception;
 use File;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
+use Uspdev\Forms\Enums\FormDefinitionStatus;
 use Uspdev\Forms\Models\FormDefinition;
+use Uspdev\Forms\Services\FormDefinitionSchemaValidator;
 
 class DefinitionController extends Controller
 {
@@ -42,13 +44,18 @@ class DefinitionController extends Controller
     public function store(Request $request)
     {
         $fields = json_decode($request->input('fields'), true);
-
-        FormDefinition::create([
+        $definition = [
             'name'        => $request->input('name'),
+            'version'     => $request->integer('version', 1),
+            'status'      => $request->input('status', FormDefinitionStatus::Active->value),
             'group'       => $request->input('group'),
             'description' => $request->input('description'),
             'fields'      => $fields,
-        ]);
+        ];
+
+        app(FormDefinitionSchemaValidator::class)->validate($definition);
+
+        FormDefinition::create($definition);
 
         return redirect()->route('form-definitions.index')
             ->with('alert-success', 'Definição criada com sucesso!');
@@ -62,11 +69,18 @@ class DefinitionController extends Controller
 
     public function update(Request $request, FormDefinition $formDefinition)
     {
-        $formDefinition->fields = json_decode($request->input('fields'), true);
+        $definition = [
+            'name'        => $request->input('name'),
+            'version'     => $request->integer('version', 1),
+            'status'      => $request->input('status', FormDefinitionStatus::Active->value),
+            'group'       => $request->input('group'),
+            'description' => $request->input('description'),
+            'fields'      => json_decode($request->input('fields'), true),
+        ];
 
-        $formDefinition->save();
+        app(FormDefinitionSchemaValidator::class)->validate($definition, $formDefinition->id);
 
-        $formDefinition->update($request->only(['name', 'group', 'description']));
+        $formDefinition->update($definition);
 
         return redirect()->route('form-definitions.index')
             ->with('alert-success', 'Definição atualizada com sucesso!');
