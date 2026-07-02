@@ -21,6 +21,15 @@
         "uspdev/replicado": "*",
         "spatie/laravel-activitylog": "^4.10"
     },
+    "require-dev": {
+        "orchestra/testbench": "^9.0",
+        "phpunit/phpunit": "^10.5"
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Uspdev\\Forms\\Tests\\": "tests/"
+        }
+    },
     "extra": {
         "laravel": {
             "providers": [
