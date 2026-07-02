@@ -35,3 +35,13 @@ Esta é a porta de entrada da documentação técnica do `uspdev/forms`. Os link
 A API pública oficial é a facade `Uspdev\Forms\Facades\Forms`. A classe `Uspdev\Forms\Form` permanece no pacote como implementação interna e não deve ser usada diretamente por sistemas consumidores.
 
 As definições de formulário são identificadas por `name + version`. Quando uma chamada pública omitir `version`, a biblioteca deve usar a versão ativa daquele `name`.
+
+## Divisão de responsabilidades
+
+A separação principal da V2 é entre definição e submissão.
+
+`FormDefinition` representa a estrutura do formulário: nome, versão, versão ativa, grupo, descrição e campos. É a parte que diz como o formulário deve existir e ser validado.
+
+`FormSubmission` representa os dados enviados por alguém. Cada submissão aponta para a definição usada no momento do envio por meio de `form_definition_id`, então uma submissão antiga continua ligada à versão exata do formulário que a criou.
+
+A facade `Forms` é apenas a porta pública da biblioteca. Ela existe para oferecer uma API simples e estável para os consumidores, mas não significa que toda a regra interna precise ficar em uma única classe. A implementação pode ser organizada em serviços internos de definição, submissão, renderização e arquivos, sem mudar o contrato público.

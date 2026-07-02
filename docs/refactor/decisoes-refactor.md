@@ -6,6 +6,14 @@ Este documento registra decisões arquiteturais tomadas durante o refactor. Ele 
 
 A facade `Uspdev\Forms\Facades\Forms` é a porta pública oficial da biblioteca. Ela encapsula `FormsService` e evita que consumidores externos dependam da classe interna `Form`.
 
+A facade não deve ser entendida como a classe que concentra toda a implementação. Ela é a entrada estável para quem usa o pacote. Internamente, as responsabilidades podem ser separadas em serviços próprios para definição, submissão, renderização e arquivos.
+
+## Divisão entre definição e submissão
+
+`FormDefinition` representa a estrutura e o versionamento do formulário. Ela responde por `name`, `version`, `is_active`, `group`, `description` e `fields`.
+
+`FormSubmission` representa os dados submetidos. Ela guarda `form_definition_id`, `user_id`, `key` e `data`, além de auditoria e soft delete. A versão usada por uma submissão vem sempre da relação com `formDefinition`, não de uma coluna própria de versão.
+
 ## Form como implementação interna
 
 `Uspdev\Forms\Form` permanece no pacote para concentrar ou reaproveitar regras existentes de renderização, validação de submissão, upload e download. Ela não deve ser apresentada como API recomendada na documentação pública.
